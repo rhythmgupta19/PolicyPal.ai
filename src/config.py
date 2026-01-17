@@ -34,8 +34,8 @@ class LanguageConfig:
 class ResponseConfig:
     """Configuration for response generation."""
     
-    MAX_RESPONSE_WORDS: int = 200
-    MAX_RESPONSE_BYTES: int = 10240  # 10 KB
+    MAX_RESPONSE_WORDS: int = 120
+    MAX_RESPONSE_BYTES: int = 10 * 1024 # 10 KB
     MAX_ACTION_STEPS: int = 5
     MAX_SCHEME_RESULTS: int = 3
 
@@ -54,7 +54,7 @@ class NetworkConfig:
     
     MAX_RETRIES: int = 2
     TIMEOUT_SECONDS: int = 5
-    TARGET_NETWORK_SPEED: str = "2G"  # 50 kbps minimum
+    # TARGET_NETWORK_SPEED: str = "2G"  # 50 kbps minimum
 
 
 @dataclass
