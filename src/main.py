@@ -26,12 +26,10 @@ def ping():
 
 @app.get("/ask")
 def ask(q: str, lang: str = "hi"):
-    matched = match_schemes(
-        query=q,
-        schemes=SCHEMES,
-        max_results=config.response.MAX_SCHEME_RESULTS
-    )
-
+   matched = [
+    s for s in match_schemes(q, SCHEMES, config.response.MAX_SCHEME_RESULTS)
+    if s.get("lang") == lang
+    ]
     schemes_out = []
     for s in matched:
         schemes_out.append({
@@ -60,5 +58,5 @@ def ask(q: str, lang: str = "hi"):
             media_type="application/json",
             status_code=500
         )
-
+    print(f"Response size: {len(raw)} bytes")
     return Response(content=raw, media_type="application/json")

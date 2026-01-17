@@ -1,17 +1,22 @@
 def match_schemes(query: str, schemes: list, max_results: int):
-    """
-    Very simple keyword-based matching.
-    No ML. No overthinking.
-    """
-
-    q = query.lower()
+    q = query.lower().split()
     results = []
 
     for scheme in schemes:
-        if q in scheme["name"].lower():
-            results.append(scheme)
+        name = scheme["name"].lower()
+        elig = scheme.get("elig", [])
 
-        if len(results) >= max_results:
-            break
+        score = 0
 
-    return results
+        for word in q:
+            if word in name:
+                score += 2
+            if word in elig:
+                score += 1
+
+        if score > 0:
+            results.append((score, scheme))
+
+    results.sort(reverse=True, key=lambda x: x[0])
+
+    return [s for _, s in results[:max_results]]
