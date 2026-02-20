@@ -60,19 +60,3 @@ class SchemeRetriever:
 
     def _tokenize(self, text: str) -> set:
         return set(re.findall(r"\w+", text.lower()))
-
-
-
-from scheme_database import SchemeDatabase
-from scheme_retriever import SchemeRetriever
-
-db = SchemeDatabase("data/schemes.json")
-retriever = SchemeRetriever(db)
-
-query = "छात्रों के लिए शिक्षा योजना"
-entities = {"category": "education", "demographic": "student"}
-
-results = retriever.search(query, entities)
-
-for scheme in results:
-    print(scheme["name_hi"])

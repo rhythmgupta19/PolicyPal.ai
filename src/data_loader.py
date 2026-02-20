@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from config import config
+
+from src.config import config
 
 
 def load_schemes():
@@ -11,7 +12,13 @@ def load_schemes():
         return []
 
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        loaded = json.load(f)
+
+    if isinstance(loaded, list):
+        return loaded
+
+    # Graceful fallback for malformed or legacy files.
+    return []
 
 
 # Load once at startup (important for speed)
