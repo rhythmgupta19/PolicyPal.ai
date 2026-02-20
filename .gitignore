@@ -46,6 +46,7 @@ Thumbs.db
 # Data files (may contain sensitive information)
 data/*.json
 !data/.gitkeep
+!data/schemes.json
 
 # Logs
 *.log

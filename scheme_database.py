@@ -42,15 +42,3 @@ class SchemeDatabase:
         :return: List of scheme records
         """
         return self._schemes
-
-
-
-# use cases
-
-db = SchemeDatabase("schemes.json")
-
-all_schemes = db.get_all()
-print(all_schemes)
-
-scheme = db.get_by_id("scheme_001")
-print(scheme)

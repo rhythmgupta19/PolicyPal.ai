@@ -30,7 +30,6 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-asyncio_mode = "auto"
 
 [tool.black]
 line-length = 100
@@ -44,4 +43,4 @@ ignore = []
 
 [tool.hypothesis]
 max_examples = 100
-deadline = None
+deadline = "none"

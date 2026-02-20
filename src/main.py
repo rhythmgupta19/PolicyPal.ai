@@ -1,10 +1,11 @@
-from data_loader import SCHEMES
-from matcher import match_schemes
-from fastapi import FastAPI, Response
 import json
 
-from config import config
-from schemas import AssistantResponse
+from fastapi import FastAPI, Response
+
+from src.config import config
+from src.data_loader import SCHEMES
+from src.matcher import match_schemes
+from src.schemas import AssistantResponse
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
@@ -18,7 +19,7 @@ def ping():
         return Response(
             content=b'{"msg":"payload too large"}',
             media_type="application/json",
-            status_code=500
+            status_code=500,
         )
 
     return Response(content=raw, media_type="application/json")
@@ -26,37 +27,38 @@ def ping():
 
 @app.get("/ask")
 def ask(q: str, lang: str = "hi"):
-   matched = [
-    s for s in match_schemes(q, SCHEMES, config.response.MAX_SCHEME_RESULTS)
-    if s.get("lang") == lang
+    if lang not in config.language.SUPPORTED_LANGUAGES:
+        lang = config.language.DEFAULT_LANGUAGE
+
+    matched = match_schemes(q, SCHEMES, config.response.MAX_SCHEME_RESULTS)
+
+    schemes_out = [
+        {
+            "id": s.get("id", ""),
+            "name": s.get(f"name_{lang}") or s.get("name_hi") or s.get("name_en") or "",
+            "benefit": s.get(f"benefits_{lang}") or s.get("benefits_hi") or s.get("benefits_en") or "",
+        }
+        for s in matched
     ]
-    schemes_out = []
-    for s in matched:
-        schemes_out.append({
-            "id": s["id"],
-            "name": s["name"],
-            "benefit": s["benefit"]
-        })
 
     response = AssistantResponse(
-        msg="मिलान की गई योजनाएं",
+        msg="मिलान की गई योजनाएं" if schemes_out else "कोई उपयुक्त योजना नहीं मिली",
         schemes=schemes_out,
         steps=[],
-        lang=lang
+        lang=lang,
     )
 
-    import json
     raw = json.dumps(
         response.model_dump(),
         separators=(",", ":"),
-        ensure_ascii=False
+        ensure_ascii=False,
     ).encode("utf-8")
 
     if len(raw) > config.response.MAX_RESPONSE_BYTES:
         return Response(
             content=b'{"msg":"response too large"}',
             media_type="application/json",
-            status_code=500
+            status_code=500,
         )
-    print(f"Response size: {len(raw)} bytes")
+
     return Response(content=raw, media_type="application/json")
