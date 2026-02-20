@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Minimal Chat</title>
+  <title>OTP Login + Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,12 +12,46 @@
       margin-top: 40px;
     }
 
+    .card {
+      width: 420px;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: none;
+      background: #1a73e8;
+      color: white;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    button:disabled {
+      background: #94b9f5;
+      cursor: not-allowed;
+    }
+
     #chat-container {
-      width: 400px;
+      width: 420px;
       background: white;
       border: 1px solid #ddd;
       display: flex;
       flex-direction: column;
+      height: 420px;
     }
 
     #messages {
@@ -45,35 +79,131 @@
       border-top: 1px solid #ddd;
     }
 
-    #input {
+    #chat-input {
       flex: 1;
-      padding: 8px;
       border: none;
       outline: none;
+      margin: 0;
     }
 
-    button {
-      padding: 8px 12px;
-      border: none;
-      background: #1a73e8;
-      color: white;
-      cursor: pointer;
+    .status {
+      margin-top: 8px;
+      color: #333;
+      min-height: 18px;
     }
   </style>
 </head>
 <body>
-  <div id="chat-container">
-    <div id="messages"></div>
+  <div>
+    <div id="auth-card" class="card">
+      <h3>Login with OTP</h3>
+      <input id="phone" type="text" placeholder="Enter phone number" />
+      <button id="send-otp-btn" onclick="requestOtp()">Send OTP</button>
+      <input id="otp" type="text" placeholder="Enter 6-digit OTP" maxlength="6" />
+      <button onclick="verifyOtp()">Verify OTP</button>
+      <div id="auth-status" class="status"></div>
+    </div>
 
-    <div id="input-area">
-      <input id="input" type="text" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
+    <div id="chat-container" class="hidden">
+      <div id="messages"></div>
+      <div id="input-area">
+        <input id="chat-input" type="text" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
     </div>
   </div>
 
   <script>
+    let cooldownInterval = null;
     const messagesDiv = document.getElementById("messages");
-    const input = document.getElementById("input");
+    const chatInput = document.getElementById("chat-input");
+    const sendOtpBtn = document.getElementById("send-otp-btn");
+    const authStatus = document.getElementById("auth-status");
+
+    function setStatus(text, isError = false) {
+      authStatus.style.color = isError ? "#c62828" : "#2e7d32";
+      authStatus.textContent = text;
+    }
+
+    function startCooldown(seconds) {
+      let left = seconds;
+      sendOtpBtn.disabled = true;
+      sendOtpBtn.textContent = `Resend OTP in ${left}s`;
+
+      if (cooldownInterval) {
+        clearInterval(cooldownInterval);
+      }
+
+      cooldownInterval = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(cooldownInterval);
+          sendOtpBtn.disabled = false;
+          sendOtpBtn.textContent = "Send OTP";
+          return;
+        }
+        sendOtpBtn.textContent = `Resend OTP in ${left}s`;
+      }, 1000);
+    }
+
+    async function requestOtp() {
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone) {
+        setStatus("Please enter phone number.", true);
+        return;
+      }
+
+      try {
+        const response = await fetch("/auth/request-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          const detail = data.detail || {};
+          if (detail.cooldown_seconds) {
+            startCooldown(detail.cooldown_seconds);
+          }
+          setStatus(detail.msg || "Failed to request OTP.", true);
+          return;
+        }
+
+        startCooldown(data.cooldown_seconds);
+        setStatus(`OTP sent. Demo OTP: ${data.otp}`);
+      } catch (err) {
+        setStatus("Network error while requesting OTP.", true);
+      }
+    }
+
+    async function verifyOtp() {
+      const phone = document.getElementById("phone").value.trim();
+      const otp = document.getElementById("otp").value.trim();
+      if (!phone || otp.length !== 6) {
+        setStatus("Enter valid phone and 6-digit OTP.", true);
+        return;
+      }
+
+      try {
+        const response = await fetch("/auth/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, otp }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setStatus(data.detail || "OTP verification failed.", true);
+          return;
+        }
+
+        setStatus("Login successful.");
+        document.getElementById("auth-card").classList.add("hidden");
+        document.getElementById("chat-container").classList.remove("hidden");
+      } catch (err) {
+        setStatus("Network error while verifying OTP.", true);
+      }
+    }
 
     function addMessage(text, sender) {
       const div = document.createElement("div");
@@ -84,29 +214,22 @@
     }
 
     async function sendMessage() {
-      const text = input.value.trim();
+      const text = chatInput.value.trim();
       if (!text) return;
 
       addMessage(text, "user");
-      input.value = "";
+      chatInput.value = "";
 
       try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message: text })
-        });
-
+        const response = await fetch(`/ask?q=${encodeURIComponent(text)}&lang=hi`);
         const data = await response.json();
-        addMessage(data.reply, "bot");
+        addMessage(data.msg || "No response", "bot");
       } catch (err) {
         addMessage("Error contacting server.", "bot");
       }
     }
 
-    input.addEventListener("keydown", (e) => {
+    chatInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         sendMessage();
       }
