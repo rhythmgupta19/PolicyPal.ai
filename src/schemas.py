@@ -1,15 +1,17 @@
-from pydantic import BaseModel, Field
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 
-class QueryRequest(BaseModel):
+@dataclass
+class QueryRequest:
     """Incoming user query."""
 
-    q: str = Field(..., min_length=1, max_length=500)
-    lang: Optional[str] = Field(default="hi")
+    q: str
+    lang: Optional[str] = "hi"
 
 
-class SchemeInfo(BaseModel):
+@dataclass
+class SchemeInfo:
     """Minimal scheme info (compact)."""
 
     id: str
@@ -17,13 +19,22 @@ class SchemeInfo(BaseModel):
     benefit: str
 
 
-class AssistantResponse(BaseModel):
+@dataclass
+class AssistantResponse:
     """
     Compact response optimized for low bandwidth.
     Field names are intentionally short.
     """
 
-    msg: str                   # main answer text
-    schemes: List[SchemeInfo] = []
-    steps: List[str] = []
+    msg: str
+    schemes: List[dict] = field(default_factory=list)
+    steps: List[str] = field(default_factory=list)
     lang: str = "hi"
+
+    def model_dump(self):
+        return {
+            "msg": self.msg,
+            "schemes": self.schemes,
+            "steps": self.steps,
+            "lang": self.lang,
+        }

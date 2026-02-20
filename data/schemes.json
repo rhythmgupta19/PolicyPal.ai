@@ -1,0 +1,41 @@
+[
+  {
+    "id": "edu_001",
+    "category": "education",
+    "name_hi": "प्रधानमंत्री छात्रवृत्ति योजना",
+    "name_en": "Prime Minister Scholarship Scheme",
+    "description_hi": "छात्रों के लिए छात्रवृत्ति सहायता योजना।",
+    "description_en": "Scholarship support scheme for students.",
+    "eligibility_hi": "मेधावी छात्र",
+    "eligibility_en": "Meritorious students",
+    "benefits_hi": "उच्च शिक्षा के लिए वित्तीय सहायता",
+    "benefits_en": "Financial support for higher education",
+    "tags": ["education", "scholarship", "student"]
+  },
+  {
+    "id": "fin_001",
+    "category": "financial_aid",
+    "name_hi": "प्रधानमंत्री किसान सम्मान निधि",
+    "name_en": "Pradhan Mantri Kisan Samman Nidhi",
+    "description_hi": "किसानों को आय सहायता देने की योजना।",
+    "description_en": "Income support scheme for farmers.",
+    "eligibility_hi": "योग्य किसान परिवार",
+    "eligibility_en": "Eligible farmer families",
+    "benefits_hi": "₹6000 वार्षिक सहायता",
+    "benefits_en": "₹6000 annual support",
+    "tags": ["financial", "farmers", "kisan"]
+  },
+  {
+    "id": "health_001",
+    "category": "healthcare",
+    "name_hi": "आयुष्मान भारत योजना",
+    "name_en": "Ayushman Bharat Scheme",
+    "description_hi": "गरीब परिवारों के लिए स्वास्थ्य बीमा योजना।",
+    "description_en": "Health insurance for low-income families.",
+    "eligibility_hi": "पात्र परिवार",
+    "eligibility_en": "Eligible families",
+    "benefits_hi": "प्रति परिवार ₹5 लाख तक का कवर",
+    "benefits_en": "Coverage up to ₹5 lakh per family",
+    "tags": ["healthcare", "insurance"]
+  }
+]
